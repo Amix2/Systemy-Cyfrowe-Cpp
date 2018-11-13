@@ -44,6 +44,10 @@ void copyFrame(Frame source, Frame * dest) {
 
 }
 
+void clearFrame(Frame* frame) {
+	memset(frame->content, 0, WIDTH * HEIGHT * sizeof(int));
+}
+
 void averageFrames(Frame** frameTab, int n) {
 	//if (n == 1) return;
 	int avgRed, avgGreen, avgBlue;
