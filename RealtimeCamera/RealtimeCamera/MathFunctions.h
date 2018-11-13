@@ -4,24 +4,24 @@
 #include <math.h>
 #define NOT_VALID_VCTOR 88.8
 
-struct VectorAngle {
+struct Vector {
 	double angle;
 };
 
 
 
-VectorAngle initVector(Point p1, Point p2);
-VectorAngle initVector();
-VectorAngle averageVectorDirections(VectorAngle v1, VectorAngle v2, int w1=1, int w2=1);
-bool isBetween(VectorAngle borderMin, VectorAngle borderMax, VectorAngle vec);
+Vector initVector(Point p1, Point p2);
+Vector initVector();
+Vector averageVectorDirections(Vector v1, Vector v2, int w1=1, int w2=1);
+bool isBetween(Vector borderMin, Vector borderMax, Vector vec);
 
-void print(VectorAngle v);
+void print(Vector v);
 void print(Point p);
 
 bool isInFrame(Point p);
 double distance(Point p1, Point p2);
-double differenceVector(VectorAngle v1, VectorAngle v2);
-bool isVectorClose(VectorAngle base, VectorAngle comp, double delta);
+double differenceVector(Vector v1, Vector v2);
+bool isVectorClose(Vector base, Vector comp, double delta);
 int getNextDir(int dir, int step);
 int compareDir(int base, int comp);
 
@@ -32,3 +32,7 @@ Point performMoveFromDirection(Point point, int dir);
 
 
 Point neighbours(Point p, int num);
+
+double angleDifference(double angle1, double angle2);
+int angleCompare(double angle1, double angle2);
+double angleCalculate(Point start, Point end);

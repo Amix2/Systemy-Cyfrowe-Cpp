@@ -1,6 +1,44 @@
 #include "stdafx.h"
 #include "MathFunctions.h"
 
+
+double angleDifference(double angle1, double angle2) {
+	if (std::abs(angle1 - angle2) < PI)
+		return std::abs(angle1 - angle2);
+	else return 2 * PI - std::abs(angle1 - angle2);
+}
+
+int angleCompare(double angle1, double angle2) {
+	if (std::abs(angle1 - angle2) < PI) {
+		if (angle1 > angle2) return 1;
+		else return -1;
+	}
+	if (angle1 < angle2) return 1;
+	else return -1;
+}
+
+double angleCalculate(Point start, Point end) {
+	const double x = end.x - start.x;
+	const double y = end.y - start.y;
+	if (x == 0)
+		if (y > 0)
+			return { PI / 2 };
+		else
+			return { -PI / 2 };
+	return std::atan2(y, x);
+}
+
+double angleAdd(double angle1, double angle2) {
+	const double out = angle1 + angle2;
+	if (out > PI) return out - 2 * PI;
+	return out;
+}
+double angleSub(double angle1, double angle2) {
+	const double out = angle1 - angle2;
+	if (out < -PI) return out + 2 * PI;
+	return out;
+}
+
 Vector initVector() {
 	return { NOT_VALID_VCTOR };
 }
