@@ -11,13 +11,25 @@ double angleDifference(double angle1, double angle2) {
 int angleCompare(double angle1, double angle2) {
 	if (std::abs(angle1 - angle2) < PI) {
 		if (angle1 > angle2) return 1;
-		else return -1;
+		if (angle1 < angle2) return -1;
+		return 0;
 	}
 	if (angle1 < angle2) return 1;
-	else return -1;
+	if (angle1 > angle2) return -1;
+	return 0;
 }
 
 double angleCalculate(Point start, Point end) {
+	const double x = end.x - start.x;
+	const double y = end.y - start.y;
+	if (x == 0)
+		if (y > 0)
+			return { PI / 2 };
+		else
+			return { -PI / 2 };
+	return std::atan2(y, x);
+}
+double angleCalculate(DPoint start, Point end) {
 	const double x = end.x - start.x;
 	const double y = end.y - start.y;
 	if (x == 0)
@@ -37,6 +49,16 @@ double angleSub(double angle1, double angle2) {
 	const double out = angle1 - angle2;
 	if (out < -PI) return out + 2 * PI;
 	return out;
+}
+
+double angleCalculate(Line l1, Line l2) {
+	const double ang1 = atan2(-l1.A, l1.B);
+	const double ang2 = atan2(-l2.A, l2.B);
+	return angleDifference(std::max(ang1, ang2), std::min(ang1, ang2));
+}
+
+double angleCalculate(Line line) {
+	return atan2(-line.A, line.B);
 }
 
 Vector initVector() {
@@ -207,6 +229,9 @@ Point performMoveFromDirection(Point point, int dir) {
 }
 
 Point neighbours(Point p, int num) {
+	/*	123
+		456
+		789	*/
 	int x, y;
 	switch (num)
 	{
@@ -267,4 +292,40 @@ Point neighbours(Point p, int num) {
 		return p;
 		break;
 	}
+}
+
+// ################################################################
+//				LINE
+
+Point findCrossPointLine(const Line& l1, const Line& l2) {
+	const double y = (l2.C*l1.A - l1.C*l2.A) / (l1.B*l2.A - l2.B*l1.A);
+	const double x = ((-1)*l1.B*y - l1.C) / l1.A;
+	return { (int)round(x), (int)round(y) };
+}
+
+Line findCrossLine(const Line& l1, const Line& l2) {
+	Point edge1, edge2;
+	double dist = -1;
+	for (int a = 0; a < 2; a++) {
+		for (int b = 0; b < 2; b++) {
+			if (distance(l1.point[a], l2.point[b]) > dist) {
+				edge1 = l1.point[a];
+				edge2 = l2.point[b];
+			}
+		}
+	}
+	return Line(edge1, edge2);
+}
+
+bool Line::isBelow(const Point& referencePoint, const Point& point) {
+	const Line compLine = Line(referencePoint, point);
+	const int cmp =  angleCompare(angleCalculate(*this), angleCalculate(compLine)); // this < compLine
+	return cmp == 1;
+}
+
+
+bool Line::isAbove(const Point& referencePoint, const Point& point) {
+	const Line compLine = Line(referencePoint, point);
+	const int cmp = angleCompare(angleCalculate(*this), angleCalculate(compLine)); // this < compLine
+	return cmp == -1;
 }

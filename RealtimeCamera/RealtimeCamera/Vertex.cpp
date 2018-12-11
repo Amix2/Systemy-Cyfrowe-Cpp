@@ -64,59 +64,56 @@ Vertex* findVertex(int x, int y) {
 	return NULL;
 }
 
+int findPlaceForNewPoint(const Point& point) {
+	int vertPoz = -1;
+	double dist = VertexProximity;
+	for (int i = 0; i < VertexTabID; i++) {
+		const double newDist = distance(point, { VertexTab[i].x, VertexTab[i].y });
+		if (dist >  newDist) { // we have better point to merge
+			//printf("dist: %lf\n", newDist);
+			vertPoz = i;
+			dist = newDist;
+		}
+	}
+	if (vertPoz == -1) {
+		//printf("NEW: %d, from %d, %d\n", VertexTabID, point.x, point.y);
+		VertexTabID++;
+		return VertexTabID - 1;
+	}
+	VertexTab[vertPoz].x = (VertexTab[vertPoz].x + point.x) / 2;
+	VertexTab[vertPoz].y = (VertexTab[vertPoz].y + point.y) / 2;
+	//printf("OLD: %d, from %d, %d\n", vertPoz, point.x, point.y);
+	return vertPoz;
+}
+
 void addVertexPair(int x1, int y1, int x2, int y2) {
-	Vertex *v1 = NULL, *v2 = NULL;
-	int id1 = -1, id2 = -1;
-	int dist1 = VertexProximity, dist2 = VertexProximity;
-
-	for (int i = 0; (v1 == NULL or v2 == NULL) and i < VertexTabID; i++) {
-		if (v1 == NULL and equals(VertexTab[i], x1, y1)) {
-			v1 =  &VertexTab[i];
-			id1 = i;
-		}
-		else if (distance({ x1, y1 }, { VertexTab[i].x, VertexTab[i].y }) < dist1) {
-				dist1 = distance({ x1, y1 }, { VertexTab[i].x, VertexTab[i].y });
-				id1 = i;
-		}
-		if (v2 == NULL and equals(VertexTab[i], x2, y2)) {
-			v2 = &VertexTab[i];
-			id2 = i;
-		}
-		else if (distance({ x2, y2 }, { VertexTab[i].x, VertexTab[i].y }) < dist1) {
-			dist1 = distance({ x2, y2 }, { VertexTab[i].x, VertexTab[i].y });
-			id2 = i;
-		}
-	}
-	if(id1 == -1) {
-		v1 = &VertexTab[VertexTabID];
-		id1 = VertexTabID;
-		VertexTabID++;
-	}
-	else if (id1 >= 0 and v1 == NULL) {
-		v1 = &VertexTab[id1];
-	}
-	if (id2 == -1) {
-		v2 = &VertexTab[VertexTabID];
-		id2 = VertexTabID;
-		VertexTabID++;
-	}
-	else if (id2 >= 0 and v2 == NULL) {
-		v2 = &VertexTab[id2];
-	}
-
+	const int v1Poz = findPlaceForNewPoint({ x1, y1 });
+	Vertex* v1 = &(VertexTab[v1Poz]);
 	v1->x = x1;
 	v1->y = y1;
+
+	const int v2Poz = findPlaceForNewPoint({ x2, y2 });
+	Vertex* v2 = &(VertexTab[v2Poz]);
 	v2->x = x2;
 	v2->y = y2;
 
-	if (!addNodeToVertex(v1, id2)) std::cout << "ERROR: can not add Node To Vertex" << std::endl;
+	//printf("addVertexPair: %d,%d -> %d, %d, POZ: %d -> %d\n", x1, y1, x2, y2, v1Poz, v2Poz);
 
-	if (!addNodeToVertex(v2, id1)) std::cout << "ERROR: can not add Node To Vertex" << std::endl;
+	if (!addNodeToVertex(v1, v2Poz)) std::cout << "ERROR: can not add Node To Vertex" << std::endl;
+
+	if (!addNodeToVertex(v2, v1Poz)) std::cout << "ERROR: can not add Node To Vertex" << std::endl;
 }
 
-void drawLine(Frame* frame, Vertex* v1, Vertex* v2) {
-	double a = (double)(v1->y - v2->y) / (v1->x - v2->x);
-	double b = (double)(v1->y+0.5) - a * (v1->x+0.5);
+
+void drawLine(Frame* frame, Vertex* v1, Vertex* v2, uint8_t red, uint8_t blue, uint8_t green) {
+	const double con1 = v1->x - v2->x;
+	const double con2 = v1->y - v2->y;
+	const double A = -con2;
+	const double B = con1;
+	const double C = v1->x*con2 - v1->y*con1;
+
+	const double a = (double)(v1->y - v2->y) / (v1->x - v2->x);
+	const double b = (double)(v1->y+0.5) - a * (v1->x+0.5);
 
 	if (std::abs(v1->x - v2->x) > std::abs(v1->y - v2->y)) { // iter XX
 		const int Xmax = std::max(v1->x, v2->x);
@@ -124,8 +121,8 @@ void drawLine(Frame* frame, Vertex* v1, Vertex* v2) {
 		int itX = Xmin;
 		int py = -1;
 		while (itX <= Xmax) {
-			py = (a * itX + b);
-			setAllColors(&(frame->content[py * WIDTH + itX]));
+			py = (A*itX + C) / (-B);
+			setAllColors(&(frame->content[py * WIDTH + itX]), red, green, blue);
 			itX++;
 		}
 	} else { // iter YY
@@ -134,16 +131,11 @@ void drawLine(Frame* frame, Vertex* v1, Vertex* v2) {
 		int itY = Ymin;
 		int px = -1;
 		while (itY <= Ymax) {
-			px = ((itY - b) / a);
-			setAllColors(&(frame->content[itY * WIDTH + px]));
+			px = (B*itY + C) / (-A);
+			setAllColors(&(frame->content[itY * WIDTH + px]), red, green, blue);
 			itY++;
 		}
 	}
-
-	int cord1 = v1->y * WIDTH + v1->x;
-	int cord2 = v2->y * WIDTH + v2->x;
-	setAllColors(&(frame->content[cord1]), 0xff, 0x00, 0x00);
-	setAllColors(&(frame->content[cord2]), 0x00, 0x00, 0xff);
 }
 
 void generateFrameForVertex(Frame* frame, bool clearTab) {
@@ -165,3 +157,149 @@ void generateFrameForVertex(Frame* frame, bool clearTab) {
 	}
 	if (clearTab) VertexTabID = 0;
 }
+
+void putVertexOnFrame(Frame* frame, bool clearTab) {
+	for (int i = 0; i < VertexTabID; i++) {
+		int nodeID = VertexTab[i].nodeID;
+		for (int q = 0; q < nodeID; q++) {
+			if (i < VertexTab[i].nodes[q]) {
+				drawLine(frame, &VertexTab[i], &VertexTab[VertexTab[i].nodes[q]], 0xff, 0, 0);
+			}
+		}
+
+		if (clearTab) {
+			VertexTab[i].x = -1;
+			VertexTab[i].y = -1;
+			VertexTab[i].nodeID = 0;
+		}
+	}
+	if (clearTab) VertexTabID = 0;
+}
+void generateFancyGroupFrameForVertex(Frame* frame, bool clearTab) {
+	int *colorTab = new int[VertexTabID];
+	for (int i = 0; i < VertexTabID; i++) colorTab[i] = -1;
+	clearFrame(frame);
+	for (int i = 0; i < VertexTabID; i++) {
+		int color;
+		if (colorTab[i] != -1) color = colorTab[i];
+		else {
+			const int red = (rand() % 10) * 25;
+			const int green = (rand() % 10) * 25;
+			const int blue = (rand() % 10) * 25;
+			setAllColors(&color, red, green, blue);
+			colorTab[i] = color;
+		}
+		const int nodeID = VertexTab[i].nodeID;
+		for (int q = 0; q < nodeID; q++) { // setting color to every conected line 
+			if (i < VertexTab[i].nodes[q]) {
+				colorTab[VertexTab[i].nodes[q]] = color;
+			}
+		}
+	}
+	for (int i = 0; i < VertexTabID; i++) {
+		int nodeID = VertexTab[i].nodeID;
+		for (int q = 0; q < nodeID; q++) {
+			if (i < VertexTab[i].nodes[q]) {
+				drawLine(frame, &VertexTab[i], &VertexTab[VertexTab[i].nodes[q]], getRed(colorTab[i]), getBlue(colorTab[i]), getGreen(colorTab[i]));
+			}
+		}
+		if (clearTab) {
+			VertexTab[i].x = -1;
+			VertexTab[i].y = -1;
+			VertexTab[i].nodeID = 0;
+		}
+	}
+	if (clearTab) VertexTabID = 0;
+	free(colorTab);
+}
+
+void generateFancyLineFrameForVertex(Frame* frame, bool clearTab) {
+	clearFrame(frame);
+	for (int i = 0; i < VertexTabID; i++) {
+
+		const int nodeID = VertexTab[i].nodeID;
+		for (int q = 0; q < nodeID; q++) {
+			int color;
+			const int red = (rand() % 10) * 25;
+			const int green = (rand() % 10) * 25;
+			const int blue = (rand() % 10) * 25;
+			setAllColors(&color, red, green, blue);
+			if (i < VertexTab[i].nodes[q]) {
+				drawLine(frame, &VertexTab[i], &VertexTab[VertexTab[i].nodes[q]], getRed(color), getBlue(color), getGreen(color));
+			}
+		}
+		setRed(&(frame->content[VertexTab[i].y * WIDTH + VertexTab[i].x]), 0xFF);
+		if (clearTab) {
+			VertexTab[i].x = -1;
+			VertexTab[i].y = -1;
+			VertexTab[i].nodeID = 0;
+		}
+	}
+	if (clearTab) VertexTabID = 0;
+}
+
+void generateBordersFrameForVertex(Frame* frame, bool clearTab) {
+	clearFrame(frame);
+	for (int i = 0; i < VertexTabID; i++) {
+		setRed(&(frame->content[VertexTab[i].y * WIDTH + VertexTab[i].x]), 0xFF);
+		if (clearTab) {
+			VertexTab[i].x = -1;
+			VertexTab[i].y = -1;
+			VertexTab[i].nodeID = 0;
+		}
+	}
+	if (clearTab) VertexTabID = 0;
+}
+
+/*
+void addVertexPair2(int x1, int y1, int x2, int y2) {
+Vertex *v1 = NULL, *v2 = NULL;
+int id1 = -1, id2 = -1;
+int dist1 = VertexProximity, dist2 = VertexProximity;
+
+for (int i = 0; (v1 == NULL or v2 == NULL) and i < VertexTabID; i++) {
+if (v1 == NULL and equals(VertexTab[i], x1, y1)) {
+v1 =  &VertexTab[i];
+id1 = i;
+}
+else if (distance({ x1, y1 }, { VertexTab[i].x, VertexTab[i].y }) < dist1) {
+dist1 = distance({ x1, y1 }, { VertexTab[i].x, VertexTab[i].y });
+id1 = i;
+}
+
+if (v2 == NULL and equals(VertexTab[i], x2, y2)) {
+v2 = &VertexTab[i];
+id2 = i;
+}
+else if (distance({ x2, y2 }, { VertexTab[i].x, VertexTab[i].y }) < dist1) {
+dist1 = distance({ x2, y2 }, { VertexTab[i].x, VertexTab[i].y });
+id2 = i;
+}
+}
+if(id1 == -1) {
+v1 = &VertexTab[VertexTabID];
+id1 = VertexTabID;
+VertexTabID++;
+}
+else if (id1 >= 0 and v1 == NULL) {
+v1 = &VertexTab[id1];
+}
+if (id2 == -1) {
+v2 = &VertexTab[VertexTabID];
+id2 = VertexTabID;
+VertexTabID++;
+}
+else if (id2 >= 0 and v2 == NULL) {
+v2 = &VertexTab[id2];
+}
+
+v1->x = x1;
+v1->y = y1;
+v2->x = x2;
+v2->y = y2;
+
+if (!addNodeToVertex(v1, id2)) std::cout << "ERROR: can not add Node To Vertex" << std::endl;
+
+if (!addNodeToVertex(v2, id1)) std::cout << "ERROR: can not add Node To Vertex" << std::endl;
+}
+*/
