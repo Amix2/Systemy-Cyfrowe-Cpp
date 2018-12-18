@@ -17,10 +17,13 @@ void mergeVertex(int midPoz, int v1Poz, int v2Poz) {
 	v1 = VertexTab[v2Poz];
 	for (int i = 0; i < v1.nodeID; i++) {
 		if (v1.nodes[i] == midPoz) {
-			v1.nodes[i] = v2Poz;
+			v1.nodes[i] = v1Poz;
 			break;
 		}
 	}
+	VertexTab[midPoz].x = 0;
+	VertexTab[midPoz].y = 0;
+	VertexTab[midPoz].nodeID = 0;
 }
 
 void handleInLineConnections(int vMidPoz) {
@@ -43,7 +46,10 @@ void handleInLineConnections(int vMidPoz) {
 void vertexPostprocesing() {
 	int n = 0;
 	for (int i = 0; i < VertexTabID; i++) {
-		if (VertexTab[i].nodeID == 2) handleInLineConnections(i);
+		if (VertexTab[i].nodeID == 2) {
+			handleInLineConnections(i);
+			n++;
+		}
 	}
 	printf("n: %d\n", n);
 }

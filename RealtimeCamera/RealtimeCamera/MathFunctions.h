@@ -1,6 +1,8 @@
 #pragma once
 
 #include "stdafx.h"
+#include "Line.h"
+#include "Angle.h"
 #include <math.h>
 #define NOT_VALID_VCTOR 88.8
 
@@ -30,15 +32,6 @@ int getMoveFromPoints(Point start, Point end);
 Point performMoveFromDirection(Point point, int dir);
 
 Point neighbours(Point p, int num);
-
-double angleDifference(double angle1, double angle2);
-int angleCompare(double angle1, double angle2);
-double angleCalculate(Point start, Point end);
-double angleCalculate(DPoint start, Point end);
-double angleAdd(double angle1, double angle2);
-double angleSub(double angle1, double angle2);
-double angleCalculate(Line l1, Line l2);
-double angleCalculate(Line line);
 
 Point findCrossPointLine(const Line& line1, const Line& line2);
 Line findCrossLine(const Line& l1, const Line& l2);

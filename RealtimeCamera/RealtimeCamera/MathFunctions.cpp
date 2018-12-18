@@ -1,65 +1,8 @@
 #include "stdafx.h"
 #include "MathFunctions.h"
+#include "Line.h"
 
 
-double angleDifference(double angle1, double angle2) {
-	if (std::abs(angle1 - angle2) < PI)
-		return std::abs(angle1 - angle2);
-	else return 2 * PI - std::abs(angle1 - angle2);
-}
-
-int angleCompare(double angle1, double angle2) {
-	if (std::abs(angle1 - angle2) < PI) {
-		if (angle1 > angle2) return 1;
-		if (angle1 < angle2) return -1;
-		return 0;
-	}
-	if (angle1 < angle2) return 1;
-	if (angle1 > angle2) return -1;
-	return 0;
-}
-
-double angleCalculate(Point start, Point end) {
-	const double x = end.x - start.x;
-	const double y = end.y - start.y;
-	if (x == 0)
-		if (y > 0)
-			return { PI / 2 };
-		else
-			return { -PI / 2 };
-	return std::atan2(y, x);
-}
-double angleCalculate(DPoint start, Point end) {
-	const double x = end.x - start.x;
-	const double y = end.y - start.y;
-	if (x == 0)
-		if (y > 0)
-			return { PI / 2 };
-		else
-			return { -PI / 2 };
-	return std::atan2(y, x);
-}
-
-double angleAdd(double angle1, double angle2) {
-	const double out = angle1 + angle2;
-	if (out > PI) return out - 2 * PI;
-	return out;
-}
-double angleSub(double angle1, double angle2) {
-	const double out = angle1 - angle2;
-	if (out < -PI) return out + 2 * PI;
-	return out;
-}
-
-double angleCalculate(Line l1, Line l2) {
-	const double ang1 = atan2(-l1.A, l1.B);
-	const double ang2 = atan2(-l2.A, l2.B);
-	return angleDifference(std::max(ang1, ang2), std::min(ang1, ang2));
-}
-
-double angleCalculate(Line line) {
-	return atan2(-line.A, line.B);
-}
 
 Vector initVector() {
 	return { NOT_VALID_VCTOR };
@@ -123,7 +66,7 @@ bool isInFrame(Point p) {
 }
 
 double distance(Point p1, Point p2) {
-	if (!isInFrame(p1) or !isInFrame(p2)) return -1;
+	//if (!isInFrame(p1) or !isInFrame(p2)) return -1;
 	return std::sqrt(std::pow((p1.x - p2.x), 2) + std::pow((p1.y - p2.y), 2));
 }
 
@@ -160,58 +103,70 @@ double differenceVector(Vector v1, Vector v2) {
 }
 
 int getDirectionFromMove(int move) {
+	/*	123				00,10,20
+		456		=>		01,11,21
+		789				02,12,22	*/
 	switch (move) {
 	case 00:
-		return 4;
+		return 1;
 		break;
 	case 10:
-		return 3;
-		break;
-	case 20:
 		return 2;
 		break;
+	case 20:
+		return 3;
+		break;
 	case 01:
+		return 4;
+		break;
+	case 11:
 		return 5;
 		break;
 	case 21:
-		return 1;
-		break;
-	case 02:
 		return 6;
 		break;
-	case 12:
+	case 02:
 		return 7;
 		break;
-	case 22:
+	case 12:
 		return 8;
+		break;
+	case 22:
+		return 9;
 		break;
 	}
 }
 
 int getMoveFomDirection(int dir) {
+	/*	123				00,10,20
+		456		=>		01,11,21
+		789				02,12,22	*/
 	switch (dir) {
-	case 4:
+	case 1:
 		return 00;
 		break;
-	case 3:
+	case 2:
 		return 10;
 		break;
-	case 2:
+	case 3:
 		return 20;
 		break;
-	case 5:
+	case 4:
 		return 01;
 		break;
-	case 1:
-		return 21;
+	case 5:
+		return 11;
 		break;
 	case 6:
-		return 2;
+		return 21;
 		break;
 	case 7:
-		return 12;
+		return 02;
 		break;
 	case 8:
+		return 12;
+		break;
+	case 9:
 		return 22;
 		break;
 	}
@@ -229,9 +184,9 @@ Point performMoveFromDirection(Point point, int dir) {
 }
 
 Point neighbours(Point p, int num) {
-	/*	123
-		456
-		789	*/
+	/*	123				00,10,20
+		456		=>		01,11,21
+		789				02,12,22	*/
 	int x, y;
 	switch (num)
 	{
@@ -315,17 +270,4 @@ Line findCrossLine(const Line& l1, const Line& l2) {
 		}
 	}
 	return Line(edge1, edge2);
-}
-
-bool Line::isBelow(const Point& referencePoint, const Point& point) {
-	const Line compLine = Line(referencePoint, point);
-	const int cmp =  angleCompare(angleCalculate(*this), angleCalculate(compLine)); // this < compLine
-	return cmp == 1;
-}
-
-
-bool Line::isAbove(const Point& referencePoint, const Point& point) {
-	const Line compLine = Line(referencePoint, point);
-	const int cmp = angleCompare(angleCalculate(*this), angleCalculate(compLine)); // this < compLine
-	return cmp == -1;
 }

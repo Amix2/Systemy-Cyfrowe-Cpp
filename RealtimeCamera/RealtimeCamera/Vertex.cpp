@@ -46,6 +46,7 @@ bool equals(int x1, int y1, int x2, int y2) {
 }
 
 bool addNodeToVertex(Vertex* v, int dest) {
+	if (&(VertexTab[dest]) == v) return true;
 	if (v->nodeID == v->nodesSize) return false;
 	for (int i = 0; i < v->nodeID; i++) {
 		if (v->nodes[i] == dest) return true;
@@ -104,6 +105,9 @@ void addVertexPair(int x1, int y1, int x2, int y2) {
 	if (!addNodeToVertex(v2, v1Poz)) std::cout << "ERROR: can not add Node To Vertex" << std::endl;
 }
 
+void addVertexPair(Point p1, Point p2) {
+	addVertexPair(p1.x, p1.y, p2.x, p2.y);
+}
 
 void drawLine(Frame* frame, Vertex* v1, Vertex* v2, uint8_t red, uint8_t blue, uint8_t green) {
 	const double con1 = v1->x - v2->x;
@@ -175,6 +179,7 @@ void putVertexOnFrame(Frame* frame, bool clearTab) {
 	}
 	if (clearTab) VertexTabID = 0;
 }
+
 void generateFancyGroupFrameForVertex(Frame* frame, bool clearTab) {
 	int *colorTab = new int[VertexTabID];
 	for (int i = 0; i < VertexTabID; i++) colorTab[i] = -1;

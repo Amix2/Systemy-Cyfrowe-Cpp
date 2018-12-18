@@ -25,6 +25,7 @@ bool equals(int x1, int y1, int x2, int y2);
 bool addNodeToVertex(Vertex* v, int dest);
 Vertex* findVertex(int x, int y);
 void addVertexPair(int x1, int y1, int x2, int y2);
+void addVertexPair(Point p1, Point p2);
 void drawLine(Frame* frame, Vertex* v1, Vertex* v2, uint8_t red = 0xff, uint8_t blue = 0xff, uint8_t green = 0xff);
 void generateFrameForVertex(Frame* frame, bool clearTab = true);
 void putVertexOnFrame(Frame* frame, bool clearTab = true);

@@ -1,13 +1,25 @@
 #include "stdafx.h"
 #include "LineFinder.h"
 #include "ScreenHandler.h"
+#include "Queue.h"
 #include <windows.h>
 
 Screen screen2;
 
 
-void addOneLine(Frame frame, Point startPoint);
-Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markVisited, Point* lastPoint);
+//Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markVisited, Point* lastPoint, Stripe2* stripe);
+
+// IN: point; OUT: 2close points filled, ret DIrection
+//int isGodStartingPoint(Frame frame, Point point);
+
+// IN: point; OUT: endPoint == {-1,-1} if not found 
+//Point findNextBestStartingPoint(Frame frame, const Point point, int dir);
+
+// IN: 2 points; OUT: endPoint of line AND Stripe*
+//Point traceLine(Frame frame, Point startPoint, Point secPoint, Stripe* stripe, bool markVisited = false);
+
+// IN: 1 punkt, OUT: koniec lini z tego punktu
+//Point findEndOfContinueLine(Frame frame, Point point);
 
 void setVisited(int* pp) {
 	setAlpha(pp, 11);
@@ -25,28 +37,62 @@ void clearPixel(int* pp) {
 	setAllColors(pp, 0, 0, 0);
 }
 
+
+
 void findLanes(Frame frame) {
 	//initScreen(WIDTH * 20, HEIGHT * 20, &screen2);
 	//Sleep(1000);
-	int cord = -1;
+	PointQueue queue(6);
+
+	int cord;
 	for (int y = 0; y < HEIGHT; y++) {
 		for (int x = 0; x < WIDTH; x++) {
+			// in LOOP: check queue, check isGoodPoint(), startlineSearch and add to QUEUE
 			cord = y * WIDTH + x;
-			if (!isEmpty(frame[cord]) and !isVisited(frame[cord]))
-				addOneLine(frame, { x, y });
+			
+			while (!queue.isEmpty()) {
+				Point point = queue.take();
+				Point endPoint = findEndOfContinueLine(frame, point);
+				if (!(point == endPoint)) {
+					//printf("LINE: (%d,%d) === (%d,%d)\n", point.x, point.y, endPoint.x, endPoint.y);
+					addVertexPair(point, endPoint);
+					queue.add(point);
+					queue.add(endPoint);
+				}
+			}
+
+			if (!isEmpty(frame[cord]) and !isVisited(frame[cord])) {
+				const int startDir = isGodStartingPoint(frame, { x, y });
+				if (startDir != -1) {
+					Point startPoint = findNextBestStartingPoint(frame, { x, y }, startDir);
+					//printf("findLanes::startPoint : %d, %d\n", startPoint.x, startPoint.y);
+					queue.add(startPoint);
+				}
+			}
+		}
+	}
+	while (!queue.isEmpty()) {
+		Point point = queue.take();
+		Point endPoint = findEndOfContinueLine(frame, point);
+		if (!(point == endPoint)) {
+			//printf("LINE: (%d,%d) === (%d,%d)", point.x, point.y, endPoint.x, endPoint.y);
+			queue.add(point);
+			queue.add(endPoint);
 		}
 	}
 }
 
-void addOneLine(Frame frame, Point startPoint) {
-	bool neiTab[9] = {false, false, false, false, false, false, false, false, false};
+int isGodStartingPoint(Frame frame, Point point) {
+	bool neiTab[9] = { false, false, false, false, false, false, false, false, false };
 	int dir1 = -1, dir2 = -1;
-	for (int i = 1; i <= 9; i++) {
-		Point nei = neighbours(startPoint, i);
-		if (!(nei == startPoint) and getRed(frame[nei])>0) {
-			neiTab[i-1] = true;
+	for(int i = 1; i <= 9; i++) {
+		Point nei = neighbours(point, i);
+		if (getRed(frame[nei]) > 0) {
+			neiTab[i - 1] = true;
 		}
+		//printf("%d ", neiTab[i - 1]);
 	}
+	//printf("\n");
 
 	if (neiTab[7 - 1] and neiTab[3 - 1]) {
 		dir1 = 7;
@@ -65,35 +111,177 @@ void addOneLine(Frame frame, Point startPoint) {
 		dir2 = 4;
 	}
 	else {
-		return;
+		return -1;
 	}
-	Point lastP1, lastP2;
-	//printf("\nP1\n");
-	Point p1 = traceLineOneSide(frame, startPoint, neighbours(startPoint, dir1), false, &lastP1);
-	//printf("\nP2\n");
-	Point p2 = traceLineOneSide(frame, startPoint, neighbours(startPoint, dir2), false, &lastP2);
-
-	setAllColors(&(frame[p1]), 0xff, 0, 0);
-	setAllColors(&(frame[p2]), 0, 0, 0xff);
-	//printf("\n\nNext  run %d, %d -> %d, %d ::: %d, %d -> %d, %d\n", p1.x, p1.y, lastP1.x, lastP1.y, p2.x, p2.y, lastP2.x, lastP2.y);
-	if (distance(startPoint, p1) > distance(startPoint, p2)) {
-	//if(s1.topDif + s1.topDif < s2.topDif + s2.topDif) {
-		p2 = traceLineOneSide(frame, p1, lastP1, true, &lastP2);
-	}
-	else {
-		p1 = traceLineOneSide(frame, p2, lastP2, true, &lastP1);
-	}
-
-	//printf("\nLINE: (%d, %d), dir: %d/%d : (%d, %d) -> (%d, %d)\n\n", startPoint.x, startPoint.y, dir1, dir2, p1.x, p1.y, p2.x, p2.y);
-	if (isInFrame(p1) and isInFrame(p2) and distance(p1, p2) > 0) {
-		addVertexPair(p1.x, p1.y, p2.x, p2.y);
-	}
+	return dir1 * 10 + dir2;
 }
 
-Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markVisited, Point* lastPoint) {
+Point findNextBestStartingPoint(Frame frame, const Point point, int dir) {
+	const Point secPoint1 = performMoveFromDirection(point, dir/10);
+	Stripe stripe1(point, secPoint1, MAX_DISTANCE);
+	const Point endPoint1 = traceLine(frame, point, secPoint1, &stripe1, false);
+
+	const Point secPoint2 = performMoveFromDirection(point, dir % 10);
+	Stripe stripe2(point, secPoint2, MAX_DISTANCE);
+	const Point endPoint2 = traceLine(frame, point, secPoint2, &stripe2, false);
+
+	//printf("findNextBestStartingPoint 2p dir: %d  from: (%d,%d), (%d,%d)\n", dir, secPoint1.x, secPoint1.y, secPoint2.x, secPoint2.y);
+	//printf("findNextBestStartingPoint 2p end: (%d,%d), (%d,%d)\n", endPoint1.x, endPoint1.y, endPoint2.x, endPoint2.y);
+	if (stripe1.score > stripe2.score) return endPoint2;
+	if (stripe1.score < stripe2.score) return endPoint1;
+	if (distance(point, endPoint1) > distance(point, endPoint2)) return endPoint1;
+	return endPoint2;
+}
+
+Point findEndOfContinueLine(Frame frame, Point point) {
+	Point out = point;
+	for (int i = 1; i <= 9; i++) {
+		Point nei = neighbours(point, i);
+		if (!isEmpty(frame[nei]) and !isVisited(frame[nei]) and !(nei == point)) {
+
+			out = traceLine(frame, point, nei, NULL, true);
+			setVisited(&(frame[out]));
+			break;
+		}
+	}
+	return out;
+}
+
+Point traceLine(Frame frame, Point startPoint, Point secPoint, Stripe* str, bool markVisited) {
+	// finds point at the end of line, setVisited to every point without starting id markVisited flag is set
+	Stripe* stripe;
+	if (str == NULL)
+		stripe = new Stripe(startPoint, secPoint, MAX_DISTANCE);
+	else
+		stripe = str;
+
+	Point currentPoint;
+	double currentDistance;
+	bool foundPoint = true; // true -> change current point
+
+	int checkOrder[] = { 2, 4, 6, 8, 1, 3, 7, 9 };
+	const int checkNum = 8;
+	Point nextPoint = secPoint;
+	while (foundPoint) {
+		// main Loop: search close neighbours first
+		currentPoint = nextPoint;
+		currentDistance = distance(startPoint, currentPoint);
+		stripe->add(currentPoint);
+		//printf("traceLine from (%d,%d), curr: (%d,%d)\n", startPoint.x, startPoint.y, currentPoint.x, currentPoint.y);
+
+		double nextPointDistance = -1;
+		foundPoint = false;
+		int neiFoundNum = checkNum;
+
+		for (int i = 0; i < checkNum; i++) { // find nextPoint
+			const int neiNum = checkOrder[i];
+			const Point nei = neighbours(currentPoint, neiNum);
+			if (isEmpty(frame[nei]) or isVisited(frame[nei])) continue; // first quick check: empty or visited OUT
+
+			const double neiDistance = distance(startPoint, nei);
+			if (neiDistance <= currentDistance or neiDistance <= nextPointDistance) continue; // sec check: is closer than diferent next or current
+
+			// now: is better than prev nextPoint, is good distance, not visited
+			if (stripe->tryAdd(nei)) {
+				nextPoint = nei;	// change NextPoint
+				nextPointDistance = neiDistance;
+				foundPoint = true;
+			}
+
+			if (neiNum == 8 and foundPoint) {
+				break; // we have best close point, end search
+				neiFoundNum = 4;
+			}
+		} // inner Loop end
+
+		for (int i = 0; foundPoint and markVisited and i < neiFoundNum; i++) {
+			setVisited(&(frame[neighbours(currentPoint, i)]));
+		}
+	}
+
+	// currentPoint is the last point is Stripe
+	return currentPoint;
+
+}
+
+/*
+void addOneLine(Frame frame, Point startPoint, bool continuation) {
+	bool neiTab[9] = {false, false, false, false, false, false, false, false, false};
+	Point lastP1, lastP2, p1, p2;
+	Stripe2 str1, str2;
+	int dir1 = -1, dir2 = -1;
+	if (!continuation) {
+		for (int i = 1; i <= 9; i++) {
+			Point nei = neighbours(startPoint, i);
+			if (!(nei == startPoint) and getRed(frame[nei]) > 0) {
+				neiTab[i - 1] = true;
+			}
+		}
+
+		if (neiTab[7 - 1] and neiTab[3 - 1]) {
+			dir1 = 7;
+			dir2 = 3;
+		}
+		else if (neiTab[8 - 1] and neiTab[2 - 1]) {
+			dir1 = 8;
+			dir2 = 2;
+		}
+		else if (neiTab[9 - 1] and neiTab[1 - 1]) {
+			dir1 = 9;
+			dir2 = 1;
+		}
+		else if (neiTab[6 - 1] and neiTab[4 - 1]) {
+			dir1 = 6;
+			dir2 = 4;
+		}
+		else {
+			return;
+		}
+		Point lastP1, lastP2;
+		Stripe2 str1, str2;
+		//printf("\nP1\n");
+		p1 = traceLineOneSide(frame, startPoint, neighbours(startPoint, dir1), false, &lastP1, &str1);
+		//printf("\nP2\n");
+		p2 = traceLineOneSide(frame, startPoint, neighbours(startPoint, dir2), false, &lastP2, &str2);
+		if (str1.topDif + str1.topDif < str2.topDif + str2.topDif) {
+			p2 = traceLineOneSide(frame, p1, lastP1, true, &lastP2, &str2);
+		}
+		else {
+			p1 = traceLineOneSide(frame, p2, lastP2, true, &lastP1, &str1);
+		}
+	}
+	else { // continuation
+		p1 = startPoint;
+		for (int i = 1; i <= 9; i++) {
+			Point nei = neighbours(startPoint, i);
+			if (!(nei == startPoint) and getRed(frame[nei]) > 0) {
+				p2 = nei;
+				break;
+			}
+		}
+		p2 = traceLineOneSide(frame, p1, p2, true, &lastP2, &str2);
+	}
+
+	//setAllColors(&(frame[p1]), 0xff, 0, 0);
+	//setAllColors(&(frame[p2]), 0, 0, 0xff);
+	//printf("\n\nNext  run %d, %d -> %d, %d ::: %d, %d -> %d, %d\n", p1.x, p1.y, lastP1.x, lastP1.y, p2.x, p2.y, lastP2.x, lastP2.y);
+	//if (distance(startPoint, p1) > distance(startPoint, p2)) {
+
+
+	//printf("\nLINE: (%d, %d), dir: %d/%d : (%d, %d) -> (%d, %d)\n\n", startPoint.x, startPoint.y, dir1, dir2, p1.x, p1.y, p2.x, p2.y);
+	if (isInFrame(p1) and isInFrame(p2) and distance(p1, p2) > minLineLenght) {
+		addVertexPair(p1.x, p1.y, p2.x, p2.y);
+	}
+	//addOneLine(frame, p1);
+	//addOneLine(frame, p2);
+}
+
+Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markVisited, Point* lastPoint, Stripe2* stripe) {
 	const int maxState = 0; // -> max acceptable state
 
-	Stripe stripe(startPoint, secPoint);
+	//Stripe stripe(startPoint, secPoint);
+	stripe->initStripe(startPoint);
+	stripe->add(secPoint);
 
 	bool foundPoint = true;
 	bool lastPointSet = false;
@@ -108,7 +296,7 @@ Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markV
 
 	while (foundPoint) {
 		//printf("startPoint: %d, %d,\t nextPoint: %d, %d,\t currentPointDistance: %lf\n", startPoint.x, startPoint.y, nextPoint.x, nextPoint.y, currentPointDistance);
-		stripe.add(currentPoint);
+		//stripe->add(currentPoint);
 		//stripe.print();
 		//Sleep(500);
 		//renderFrame(frame, screen2);
@@ -119,7 +307,7 @@ Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markV
 			const double dist = distance(startPoint, nei);
 			// check all neibours
 
-			if (isInFrame(nei) and !isEmpty(frame[nei]) and !isVisited(frame[nei]) and dist > currentPointDistance and stripe.tryAdd(nei)) {
+			if (isInFrame(nei) and !isEmpty(frame[nei]) and !isVisited(frame[nei]) and dist > currentPointDistance and stripe->add(nei)) {
 				// in frane, edge, not visited, not back, in stripe
 				//printf("N: %d, %d: %lf ", nei.x, nei.y, dist);
 				foundPoint = true;
@@ -132,14 +320,25 @@ Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markV
 			}
 
 		} // end InlineLoop neibours loop
-		if (!foundPoint) {
+		if (foundPoint) {
+			for (int i = 2; markVisited and i <= 9; i+=2) {
+				const Point nei = neighbours(currentPoint, i);
+				const double dist = distance(startPoint, nei);
+				if (isInFrame(nei) and !isEmpty(frame[nei]) and !isVisited(frame[nei]) and dist > currentPointDistance) {
+					//printf("I ");
+					setVisited(&(frame[nei]));
+					//setAllColors(&(frame[nei]), mask, mask, 0);
+				}
+			}
+		}
+		else {
 			for (int i = 1; i <= 9; i += 2) { // CrossLoop
 				const Point nei = neighbours(currentPoint, i);
 				const double dist = distance(startPoint, nei);
 				// check all neibours
 
 
-				if (isInFrame(nei) and !isEmpty(frame[nei]) and !isVisited(frame[nei]) and dist > currentPointDistance and stripe.tryAdd(nei)) {
+				if (isInFrame(nei) and !isEmpty(frame[nei]) and !isVisited(frame[nei]) and dist > currentPointDistance and stripe->add(nei)) {
 					// in frane, edge, not visited, not back, in stripe
 					//printf("N: %d, %d: %lf ", nei.x, nei.y, dist);
 					foundPoint = true;
@@ -152,17 +351,22 @@ Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markV
 				}
 
 			} // end CrossLoop loop
+			if (foundPoint) {
+				for (int i = 1; markVisited and i <= 9; i ++) {
+					const Point nei = neighbours(currentPoint, i);
+					const double dist = distance(startPoint, nei);
+					if (isInFrame(nei) and !isEmpty(frame[nei]) and !isVisited(frame[nei]) and dist > currentPointDistance) {
+						//printf("I ");
+						setVisited(&(frame[nei]));
+						//setAllColors(&(frame[nei]), mask, mask, 0);
+					}
+				}
+			}
 		}
 		// nextPoint -> furthest neibour, InLine are better
 		if (foundPoint) {
 			//printf("YES: %d\n", state);
-			if (markVisited) {
-				//setAllColors(&(frame[currentPoint]), 0xff, 0xff, 0);
-				setVisited(&(frame[currentPoint]));
-			}
-			else {
-				//setAllColors(&(frame[currentPoint]), 0x0f, 0xf0, 0);
-			}
+			
 			state = max(state - 1, 0); // state --
 			*lastPoint = currentPoint;
 			currentPoint = nextPoint;
@@ -183,7 +387,7 @@ Point traceLineOneSide(Frame frame, Point startPoint, Point secPoint, bool markV
 	}
 	return bestPoint;
 }
-Point traceLineOneSide2(Frame frame, Point startPoint, Point secPoint, uint8_t mask, Point* lastPoint, Stripe* stripe) {
+Point traceLineOneSide2(Frame frame, Point startPoint, Point secPoint, uint8_t mask, Point* lastPoint, Stripe2* stripe) {
 	const int maxState = 0; // -> max acceptable state
 
 	//stripe->initStripe(startPoint, secPoint);
@@ -275,6 +479,7 @@ Point traceLineOneSide2(Frame frame, Point startPoint, Point secPoint, uint8_t m
 	}
 	return bestPoint;
 }
+*/
 /*
 
 void setVisited(int* pp) {

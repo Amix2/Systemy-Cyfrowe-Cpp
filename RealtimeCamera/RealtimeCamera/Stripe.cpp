@@ -1,14 +1,85 @@
 #include "stdafx.h"
 #include "Stripe.h"
 
-Stripe::Stripe(Point pointStart, Point pointSecound) {
+Stripe::Stripe(double maxDistance) {
+	basePoint = { -1,-1 };
+	MaxDistance = maxDistance;
+}
+Stripe::Stripe(Point point, double maxDistance) {
+	basePoint = point;
+	MaxDistance = maxDistance;
+}
+
+Stripe::Stripe(Point p1, Point p2, double maxDistance) {
+	basePoint = p1;
+	MaxDistance = maxDistance;
+	topPoint = downPoint = p2;
+	topAngle = downAngle = angleCalculate(basePoint, p2);
+	line = Line(basePoint, p2);
+	score = 0;
+}
+
+void Stripe::print() {
+	printf("Stripe max:%f sc:%0.3f from (%d,%d), top: (%d,%d) %f, down: (%d,%d) %f\n\t",
+		MaxDistance, score, basePoint.x, basePoint.y, topPoint.x, topPoint.y, topAngle, downPoint.x, downPoint.y, downAngle);
+	line.print();
+}
+
+bool Stripe::tryAdd(const Point& point) {
+	//printf("\t Stripe::tryAdd (%d, %d)\n", point.x, point.y);
+	const double pointDist = line.distanceFrom(point);
+	if (pointDist <= MaxDistance) return true;
+	const double anglePoint = angleCalculate(basePoint, point);
+	Point maxPoint = angleCompare(anglePoint, topAngle) == 1 ? point : topPoint;
+	Point minPoint = angleCompare(anglePoint, downAngle) == -1 ? point : downPoint;
+	//printf("\ttryAdd maxPoint (%d,%d), minPoint (%d,%d)\n", maxPoint.x, maxPoint.y, minPoint.x, minPoint.y);
+	Line fromMax = createLineDistanceFromPointCloseToPoint(basePoint, maxPoint, MaxDistance, minPoint);
+	if (fromMax.distanceFrom(point) <= MaxDistance and fromMax.distanceFrom(minPoint) <= MaxDistance) return true;
+
+	Line fromMin = createLineDistanceFromPointCloseToPoint(basePoint, minPoint, MaxDistance, maxPoint);
+	if (fromMin.distanceFrom(point) <= MaxDistance and fromMin.distanceFrom(maxPoint) <= MaxDistance) return true;
+	return false;
+}
+
+void Stripe::add(const Point& point) {
+	//printf("\t Stripe::add (%d, %d)\n", point.x, point.y);
+	const double pointDist = line.distanceFrom(point);
+	if (pointDist <= MaxDistance) return;
+
+	const double anglePoint = angleCalculate(basePoint, point);
+	Point maxPoint = angleCompare(anglePoint, topAngle) >= 0 ? point : topPoint;
+	Point minPoint = angleCompare(anglePoint, downAngle) <= 0 ? point : downPoint;
+	//printf("maxPoint (%d,%d), minPoint (%d,%d)\n", maxPoint.x, maxPoint.y, minPoint.x, minPoint.y);
+	Line fromMax = createLineDistanceFromPointCloseToPoint(basePoint, maxPoint, MaxDistance, minPoint);
+	Line fromMin = createLineDistanceFromPointCloseToPoint(basePoint, minPoint, MaxDistance, maxPoint);
+	
+	//average lines
+	const double fromMinAngle = fromMin.getAngleCloseTo(anglePoint);
+	const double fromMaxAngle = fromMax.getAngleCloseTo(anglePoint);
+	const double newLineAngle = angleAverage(fromMaxAngle, fromMinAngle);
+	line = Line(basePoint, newLineAngle);
+	topPoint = maxPoint;
+	topAngle = angleCalculate(basePoint, topPoint);
+	downPoint = minPoint;
+	downAngle = angleCalculate(basePoint, minPoint);
+	score = line.distanceFrom(topPoint) + line.distanceFrom(downPoint);
+}
+
+
+
+
+
+
+
+
+Stripe3::Stripe3(Point pointStart, Point pointSecound) {
 	upMax = downMax = pointStart;
 	upMin = downMin = pointSecound;
 	lineUp = lineDown = Line(pointStart, pointSecound);
 	distUpMax = distUpMin = distDownMax = distDownMin = 0.0;
 }
 
-bool Stripe::add(Point point) {
+bool Stripe3::add(Point point) {
 	const double distNewFromDown = lineDown.distanceFrom(point);
 	const double distNewFromUp = lineUp.distanceFrom(point);
 
@@ -63,7 +134,7 @@ bool Stripe::add(Point point) {
 	return true;
 }
 
-bool Stripe::tryAdd(Point point) {
+bool Stripe3::tryAdd(Point point) {
 	const double distNewFromDown = lineDown.distanceFrom(point);
 	const double distNewFromUp = lineUp.distanceFrom(point);
 
@@ -87,7 +158,7 @@ bool Stripe::tryAdd(Point point) {
 }
 
 
-void Stripe::print() {
+void Stripe3::print() {
 	printf("\tUpPoints: %d,%d (%lf) | %d,%d (%lf) \n\tDoPoints: %d,%d (%lf) | %d,%d (%lf)\n", 
 		upMax.x, upMax.y, distUpMax, upMin.x, upMin.y, distUpMin,
 		downMax.x, downMax.y, distDownMax, downMin.x, downMin.y, distDownMin);
@@ -154,7 +225,7 @@ void Stripe2::changeLine(Point point) {
 	angle = lineAngle;
 }
 
-Stripe2 Stripe2::initStripe(Point point) {
+void Stripe2::initStripe(Point point) {
 	basePoint = { (double)point.x,(double)point.y };
 	topDif = 0;
 	bottomDif = 0;
@@ -164,11 +235,10 @@ Stripe2 Stripe2::initStripe(Point point) {
 	angle = NOT_VALID_ANGLE;
 	distanceDivider = -1;
 	vector = { 0, 0 };
-	return {};
 }
 
 Stripe2 Stripe2::copy() {
-	return { angle,
+	/*return { angle,
 		basePoint,
 		topPoint, bottomPoint,
 		vector,
@@ -176,6 +246,8 @@ Stripe2 Stripe2::copy() {
 		A, B, C,
 		distanceDivider
 		};
+		*/
+	return {};
 }
 
 void Stripe2::restore(Stripe2 other) {
