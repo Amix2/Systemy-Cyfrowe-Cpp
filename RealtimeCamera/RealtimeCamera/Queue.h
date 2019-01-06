@@ -14,5 +14,6 @@ struct PointQueue {
 	bool add(Point obj);
 	void print();
 	bool isEmpty();
+	bool isFull();
 
 };

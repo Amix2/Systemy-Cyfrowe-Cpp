@@ -33,12 +33,13 @@ void handleInLineConnections(int vMidPoz) {
 	const Vertex v1 = VertexTab[v1Poz];
 	const Vertex v2 = VertexTab[v2Poz];
 	Line line({ v1.x, v1.y }, { v2.x, v2.y });
-	Line l1({ v1.x, v1.y }, { vMid.x, vMid.y });
-	Line l2({ vMid.x, vMid.y }, { v2.x, v2.y });
 
-	const int dist = std::max(line.distanceFrom({ v1.x, v1.y }), line.distanceFrom({ v2.x, v2.y }));
-	const double angle = angleCalculate(l1, l2);
-	if (dist < MERGE_POINT_LINE_DISTANCE and angle < MERGE_LINE_ANGLE) {
+	const double angle1 = angleCalculate(Point(v1.x, v1.y), { vMid.x, vMid.y });
+	const double angle2 = angleCalculate(Point(vMid.x, vMid.y), { v2.x, v2.y });
+	const double angleDif = angleDifference(angle1, angle2);
+	const int dist = line.distanceFrom({ vMid.x, vMid.y });
+
+	if (dist < MERGE_POINT_LINE_DISTANCE and angleDif < MERGE_LINE_ANGLE) {
 		mergeVertex(vMidPoz, v1Poz, v2Poz);
 	}
 }

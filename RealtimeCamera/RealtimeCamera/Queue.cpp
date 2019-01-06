@@ -35,3 +35,7 @@ bool PointQueue::add(Point obj) {
 	addId = (addId + 1) % size;
 	return true;
 }
+
+bool PointQueue::isFull() {
+	return addId == takeId - 1;
+}

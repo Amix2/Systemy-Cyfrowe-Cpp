@@ -204,6 +204,101 @@ Point traceLine(Frame frame, Point startPoint, Point secPoint, Stripe* str, bool
 
 }
 
+Point traceLine2(Frame frame, Point startPoint, Point secPoint, Stripe* str, bool markVisited) {
+	// finds point at the end of line, setVisited to every point without starting id markVisited flag is set
+	Stripe* stripe;
+	if (str == NULL)
+		stripe = new Stripe(startPoint, secPoint, MAX_DISTANCE);
+	else
+		stripe = str;
+
+	Stripe bigStripe(startPoint, secPoint, 2*MAX_DISTANCE);
+	PointQueue queue(0);
+
+	Point currentPoint;
+	double currentDistance;
+	Point endPoint;
+	double endPointDistance;
+	bool foundPoint = true; // true -> change current point
+	bool foundPossiblePoint = true;
+
+	int checkOrder[] = { 2, 4, 6, 8, 1, 3, 7, 9 };
+	const int checkNum = 8;
+	Point nextPoint = secPoint;
+	Point possiblePoint = secPoint;
+	while (foundPoint) { //  or (foundPossiblePoint and !queue.isFull())
+		// main Loop: search close neighbours first
+		stripe->add(currentPoint);
+		bigStripe.add(currentPoint);
+
+		if (foundPoint) {
+			currentPoint = nextPoint;
+			currentDistance = distance(startPoint, currentPoint);
+			endPoint = currentPoint;
+			endPointDistance = currentDistance;
+		}
+		else if (foundPossiblePoint) {
+			currentPoint = possiblePoint;
+			currentDistance = distance(startPoint, currentPoint);
+		}
+		//printf("traceLine from (%d,%d), curr: (%d,%d)\n", startPoint.x, startPoint.y, currentPoint.x, currentPoint.y);
+
+		double nextPointDistance = -1;
+		double possiblePointDistance = -1;
+		foundPoint = false;
+		foundPossiblePoint = false;
+		int neiFoundNum = checkNum;
+
+		for (int i = 0; i < checkNum; i++) { // find nextPoint
+			const int neiNum = checkOrder[i];
+			const Point nei = neighbours(currentPoint, neiNum);
+			if (isEmpty(frame[nei]) or isVisited(frame[nei])) continue; // first quick check: empty or visited OUT
+
+			const double neiDistance = distance(startPoint, nei);
+			if (neiDistance <= currentDistance) continue; // sec check: is closer than current
+
+			// now: is better than prev nextPoint, is good distance, not visited
+			if (stripe->tryAdd(nei) and neiDistance > nextPointDistance) {
+				nextPoint = nei;	// change NextPoint
+				nextPointDistance = neiDistance;
+				foundPoint = true;
+				foundPossiblePoint = true;
+			}
+
+			// point is in bigger stripe
+			if (false and bigStripe.tryAdd(nei) and neiDistance > possiblePointDistance) {
+				possiblePoint = nei;
+				possiblePointDistance = neiDistance;
+				foundPossiblePoint = true;
+			}
+
+			if (neiNum == 8 and ( foundPoint or foundPossiblePoint )) {
+				neiFoundNum = 4;
+				break; // we have best close point, end search
+			}
+		} // inner Loop end
+
+		// add points to queue if is in possible stripe
+		for (int i = 0; false and !queue.isFull() and !foundPoint and foundPossiblePoint and markVisited and i < neiFoundNum; i++) {
+			queue.add(neighbours(currentPoint, i));
+		}
+
+		// mark points in best stripe
+		for (int i = 0; foundPoint and markVisited and i < neiFoundNum; i++) {
+			setVisited(&(frame[neighbours(currentPoint, i)]));
+		}
+
+		// mark points from queue when back in best stripe
+		while (false and foundPoint and markVisited and !queue.isEmpty()) {
+			setVisited(&(frame[queue.take()]));
+		}
+	}
+
+	// currentPoint is the last point is Stripe
+	return endPoint;
+
+}
+
 /*
 void addOneLine(Frame frame, Point startPoint, bool continuation) {
 	bool neiTab[9] = {false, false, false, false, false, false, false, false, false};

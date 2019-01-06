@@ -95,6 +95,10 @@ void queueTest() {
 	qu.add(B);
 	qu.add(C);
 	qu.print();
+	cout << "isfull 1:::" << qu.isFull() << endl;
+	qu.take();
+	qu.print();
+	cout << "isfull 0:::" << qu.isFull() << endl;
 }
 
 void finderTest() {
