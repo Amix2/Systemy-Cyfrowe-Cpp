@@ -10,7 +10,7 @@ void initVertexTab() {
 	for (int i = 0; i < VertexTabLength; i++) {
 		VertexTab[i].nodes = new int[defaultNodesSize];
 		VertexTab[i].nodesSize = VertexTabLength;
-		VertexTab[i].nodeID = 0;
+		VertexTab[i].nodeFirstFreeID = 0;
 	}
 }
 
@@ -18,11 +18,20 @@ void deinitVertexTab() {
 	delete[] VertexTab;
 }
 
+void clearVertex() {
+	for (int i = 0; i < VertexTabID; i++) {
+		VertexTab[i].x = -1;
+		VertexTab[i].y = -1;
+		VertexTab[i].nodeFirstFreeID = 0;
+	}
+	VertexTabID = 0;
+}
+
 void printVertex() {
 	printf("VERTEX:\n");
 	for (int i = 0; i < VertexTabID; i++) {
-		printf("[%d]: (%d, %d) | %d :", i, VertexTab[i].x, VertexTab[i].y, VertexTab[i].nodeID);
-		for (int q = 0; q < VertexTab[i].nodeID; q++)
+		printf("[%d]: (%d, %d) | %d :", i, VertexTab[i].x, VertexTab[i].y, VertexTab[i].nodeFirstFreeID);
+		for (int q = 0; q < VertexTab[i].nodeFirstFreeID; q++)
 			printf("%d ", VertexTab[i].nodes[q]);
 		printf("\n");
 	}
@@ -47,12 +56,12 @@ bool equals(int x1, int y1, int x2, int y2) {
 
 bool addNodeToVertex(Vertex* v, int dest) {
 	if (&(VertexTab[dest]) == v) return true;
-	if (v->nodeID == v->nodesSize) return false;
-	for (int i = 0; i < v->nodeID; i++) {
+	if (v->nodeFirstFreeID == v->nodesSize) return false;
+	for (int i = 0; i < v->nodeFirstFreeID; i++) {
 		if (v->nodes[i] == dest) return true;
 	}
-	v->nodes[v->nodeID] = dest;
-	v->nodeID++;
+	v->nodes[v->nodeFirstFreeID] = dest;
+	v->nodeFirstFreeID++;
 	return true;
 }
 
@@ -125,7 +134,7 @@ void drawLine(Frame* frame, Vertex* v1, Vertex* v2, uint8_t red, uint8_t blue, u
 		int itX = Xmin;
 		int py = -1;
 		while (itX <= Xmax) {
-			py = (A*itX + C) / (-B);
+			py = round((A*itX + C) / (-B));
 			setAllColors(&(frame->content[py * WIDTH + itX]), red, green, blue);
 			itX++;
 		}
@@ -135,7 +144,7 @@ void drawLine(Frame* frame, Vertex* v1, Vertex* v2, uint8_t red, uint8_t blue, u
 		int itY = Ymin;
 		int px = -1;
 		while (itY <= Ymax) {
-			px = (B*itY + C) / (-A);
+			px = round((B*itY + C) / (-A));
 			setAllColors(&(frame->content[itY * WIDTH + px]), red, green, blue);
 			itY++;
 		}
@@ -146,8 +155,8 @@ void generateFrameForVertex(Frame* frame, bool clearTab) {
 	clearFrame(frame);
 	for (int i = 0; i < VertexTabID; i++) {
 
-		int nodeID = VertexTab[i].nodeID;
-		for (int q = 0; q < nodeID; q++) {
+		int nodeFirstFreeID = VertexTab[i].nodeFirstFreeID;
+		for (int q = 0; q < nodeFirstFreeID; q++) {
 			if (i < VertexTab[i].nodes[q]) {
 				drawLine(frame, &VertexTab[i], &VertexTab[VertexTab[i].nodes[q]]);
 			}
@@ -156,7 +165,7 @@ void generateFrameForVertex(Frame* frame, bool clearTab) {
 		if (clearTab) {
 			VertexTab[i].x = -1;
 			VertexTab[i].y = -1;
-			VertexTab[i].nodeID = 0;
+			VertexTab[i].nodeFirstFreeID = 0;
 		}
 	}
 	if (clearTab) VertexTabID = 0;
@@ -164,17 +173,17 @@ void generateFrameForVertex(Frame* frame, bool clearTab) {
 
 void putVertexOnFrame(Frame* frame, bool clearTab) {
 	for (int i = 0; i < VertexTabID; i++) {
-		int nodeID = VertexTab[i].nodeID;
-		for (int q = 0; q < nodeID; q++) {
+		int nodeFirstFreeID = VertexTab[i].nodeFirstFreeID;
+		for (int q = 0; q < nodeFirstFreeID; q++) {
 			if (i < VertexTab[i].nodes[q]) {
-				drawLine(frame, &VertexTab[i], &VertexTab[VertexTab[i].nodes[q]], 0xff, 0, 0);
+				drawLine(frame, &VertexTab[i], &VertexTab[VertexTab[i].nodes[q]]);
 			}
 		}
 
 		if (clearTab) {
 			VertexTab[i].x = -1;
 			VertexTab[i].y = -1;
-			VertexTab[i].nodeID = 0;
+			VertexTab[i].nodeFirstFreeID = 0;
 		}
 	}
 	if (clearTab) VertexTabID = 0;
@@ -194,16 +203,16 @@ void generateFancyGroupFrameForVertex(Frame* frame, bool clearTab) {
 			setAllColors(&color, red, green, blue);
 			colorTab[i] = color;
 		}
-		const int nodeID = VertexTab[i].nodeID;
-		for (int q = 0; q < nodeID; q++) { // setting color to every conected line 
+		const int nodeFirstFreeID = VertexTab[i].nodeFirstFreeID;
+		for (int q = 0; q < nodeFirstFreeID; q++) { // setting color to every conected line 
 			if (i < VertexTab[i].nodes[q]) {
 				colorTab[VertexTab[i].nodes[q]] = color;
 			}
 		}
 	}
 	for (int i = 0; i < VertexTabID; i++) {
-		int nodeID = VertexTab[i].nodeID;
-		for (int q = 0; q < nodeID; q++) {
+		int nodeFirstFreeID = VertexTab[i].nodeFirstFreeID;
+		for (int q = 0; q < nodeFirstFreeID; q++) {
 			if (i < VertexTab[i].nodes[q]) {
 				drawLine(frame, &VertexTab[i], &VertexTab[VertexTab[i].nodes[q]], getRed(colorTab[i]), getBlue(colorTab[i]), getGreen(colorTab[i]));
 			}
@@ -211,7 +220,7 @@ void generateFancyGroupFrameForVertex(Frame* frame, bool clearTab) {
 		if (clearTab) {
 			VertexTab[i].x = -1;
 			VertexTab[i].y = -1;
-			VertexTab[i].nodeID = 0;
+			VertexTab[i].nodeFirstFreeID = 0;
 		}
 	}
 	if (clearTab) VertexTabID = 0;
@@ -222,12 +231,12 @@ void generateFancyLineFrameForVertex(Frame* frame, bool clearTab) {
 	clearFrame(frame);
 	for (int i = 0; i < VertexTabID; i++) {
 
-		const int nodeID = VertexTab[i].nodeID;
-		for (int q = 0; q < nodeID; q++) {
+		const int nodeFirstFreeID = VertexTab[i].nodeFirstFreeID;
+		for (int q = 0; q < nodeFirstFreeID; q++) {
 			int color;
-			const int red = (rand() % 10) * 25;
-			const int green = (rand() % 10) * 25;
-			const int blue = (rand() % 10) * 25;
+			const int red = ((rand() % 5)+5) * 25;
+			const int green = ((rand() % 5) + 5) * 25;
+			const int blue = ((rand() % 5) + 5) * 25;
 			setAllColors(&color, red, green, blue);
 			if (i < VertexTab[i].nodes[q]) {
 				drawLine(frame, &VertexTab[i], &VertexTab[VertexTab[i].nodes[q]], getRed(color), getBlue(color), getGreen(color));
@@ -237,7 +246,7 @@ void generateFancyLineFrameForVertex(Frame* frame, bool clearTab) {
 		if (clearTab) {
 			VertexTab[i].x = -1;
 			VertexTab[i].y = -1;
-			VertexTab[i].nodeID = 0;
+			VertexTab[i].nodeFirstFreeID = 0;
 		}
 	}
 	if (clearTab) VertexTabID = 0;
@@ -250,7 +259,7 @@ void generateBordersFrameForVertex(Frame* frame, bool clearTab) {
 		if (clearTab) {
 			VertexTab[i].x = -1;
 			VertexTab[i].y = -1;
-			VertexTab[i].nodeID = 0;
+			VertexTab[i].nodeFirstFreeID = 0;
 		}
 	}
 	if (clearTab) VertexTabID = 0;

@@ -9,8 +9,9 @@ typedef struct Vertex {
 	int x;
 	int y;
 	int* nodes;
-	int nodeID = 0;
+	int nodeFirstFreeID = 0;
 	int nodesSize = defaultNodesSize;
+	int maxVisitedByID = -1; // for Searching Vertex
 } Vertex;
 
 extern int VertexTabID;
@@ -18,6 +19,7 @@ extern Vertex* VertexTab;
 
 void initVertexTab();
 void deinitVertexTab();
+void clearVertex();
 void printVertex();
 bool equals(Vertex v1, Vertex v2);
 bool equals(Vertex v1, int x2, int y2);

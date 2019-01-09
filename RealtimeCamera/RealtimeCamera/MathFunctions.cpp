@@ -70,6 +70,16 @@ double distance(Point p1, Point p2) {
 	return std::sqrt(std::pow((p1.x - p2.x), 2) + std::pow((p1.y - p2.y), 2));
 }
 
+Point avgPoint(const Point& p1, const Point & p2)
+{
+	return Point((p1.x+p2.x)/2, (p1.y + p2.y) / 2);
+}
+
+Point avgPoint(const Point & p1, const Point & p2, const int w1, const int w2)
+{
+	return Point((p1.x * w1 + p2.x * w2) / (w1+w2), (p1.y * w1 + p2.y * w2) / (w1 + w2));
+}
+
 int getNextDir(int dir, int step) {
 	return (dir + 7 + step) % 8 + 1; // ((dir-1)+8+step)%8 +1
 }

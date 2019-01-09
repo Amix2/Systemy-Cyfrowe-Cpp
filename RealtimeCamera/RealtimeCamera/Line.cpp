@@ -24,6 +24,27 @@ double Line::getAngleCloseTo(const double closeAngle) {
 
 }
 
+Line Line::getPerpendicularLineViaPoint(const Point & point) {
+	//printf("getPerpendicularLineViaPoint:: [%d,%d]\n", point.x, point.y);
+	const double A = this->A;
+	const double B = this->B;
+	const double C = -(A*point.x + B * point.y);
+	return Line(A, B, C);
+}
+
+Point Line::crossPoint(Line & other) {
+	//printf("crossPoint\n");
+	//this->print();
+	//other.print();
+	const double D = this->A * other.B - this->B * other.A;
+	//printf("D: %0.2f\t", D);
+	if (D == 0) return Point(-1, -1);
+	const int xx = ((this->B*other.C - this->C*other.B)/D);
+	const int yy = (-(this->A * other.C - this->C*other.A) / D);
+	//printf("Point: %d, %d\n", xx, yy);
+	return Point(xx, yy);
+}
+
 void createLineDistanceFromPoint(double outArray[2], const Point& referencePoint, const Point& point, const double distanceFromPoint) {
 	//printf("createLineDistanceFromPoint: from %d,%d to %d,%d dist: %f\n", referencePoint.x, referencePoint.y, point.x, point.y, distanceFromPoint);
 

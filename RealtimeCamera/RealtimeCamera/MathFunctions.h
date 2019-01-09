@@ -21,6 +21,8 @@ void print(Point p);
 
 bool isInFrame(Point p);
 double distance(Point p1, Point p2);
+Point avgPoint(const Point& p1, const Point& p2);
+Point avgPoint(const Point& p1, const Point& p2, const int w1, const int w2);
 double differenceVector(Vector v1, Vector v2);
 bool isVectorClose(Vector base, Vector comp, double delta);
 int getNextDir(int dir, int step);

@@ -7,6 +7,9 @@
 #include "Queue.h"
 #include <windows.h>
 #include "LineFinder.h"
+#include "Polygon.h"
+#include "Parallelogram.h"
+#include "FigureFinder.h"
 using namespace std;
 
 void lineTest() {
@@ -24,6 +27,8 @@ void lineTest() {
 	cout << endl;
 
 	cout << l4.isAbove(A, E) << l4.isBelow(A, E) << endl;
+	Line ppl = l4.getPerpendicularLineViaPoint(E);
+	ppl.print();
 	/*
 	printf("%d\t%d\t%d\t%d\t%d\n",
 		toDeg(angleCalculate(l1)), toDeg(angleCalculate(l2)), toDeg(angleCalculate(l3)), toDeg(angleCalculate(l4)), toDeg(angleCalculate(l5)));
@@ -136,12 +141,78 @@ void finderTest() {
 	delete(frame.content);
 }
 
+void ConvexPolygonTest() {
+	printf("\nConvexPolygon\n");
+	ConvexPolygon poly(5);
+	poly.print();
+	cout << poly.addPoint({ 1,1 })  << endl;
+	poly.print();
+	cout << poly.addPoint({ 2, 80 })  << endl;
+	poly.print();
+	cout << poly.addPoint({ 91, 81 }) << endl;
+	poly.print();
+	cout << poly.addPoint({ 90, 3 }) << endl;
+	poly.print();
+	cout << "poly Volume: " << poly.volume() << endl;
+
+	printf("\Parallelogram\n");
+	Parallelogram para(poly);
+	para.print();
+	ConvexPolygon poly2(6);
+	cout << poly2.addPoint({ 1,1 }) << endl;
+	cout << poly2.addPoint({ 1, 80 }) << endl;
+	cout << poly2.addPoint({ 90, 80 }) << endl;
+	cout << poly2.addPoint({ 130, 48 }) << endl;
+	cout << poly2.addPoint({ 90, 3 }) << endl;
+	poly2.print();
+
+	Parallelogram para2(poly2);
+	para2.print();
+	cout << "para2 Volume: " << poly2.volume() << endl;
+}
+
+void figureFinderTest() {
+	printf("\n\n\n\n===============================================================\nfigureFinderTest\n");
+	initVertexTab();
+	addVertexPair({ 5,5 }, { 20,7 });
+	addVertexPair({ 6,13 }, { 5,5 });
+	addVertexPair({ 6,13 }, { 21,14 });
+	addVertexPair({ 20,7 }, { 21,14 });
+	addVertexPair({ 20,7 }, { 31,8 });
+	addVertexPair({ 31,8 }, { 32,15 });
+	addVertexPair({ 21,14 }, { 32,15 });
+	printf("\n");
+	printVertex();
+	printf("\n");
+	findSquaresInVertex();
+}
+// [20,7] [31,8] [32,15] [21,14] [6,13] [5,5]
+void ParallelogramTest() {
+	printf("\n\n==============================\nParallelogram\n");
+
+	PolygonFigure poly(20);
+	poly.print();
+	cout << poly.addPoint({ 20,7 }) << endl;
+	cout << poly.addPoint({ 31,8 }) << endl;
+	cout << poly.addPoint({ 32,15 }) << endl;
+	cout << poly.addPoint({ 21,14 }) << endl;
+	cout << poly.addPoint({ 6,13 }) << endl;
+	cout << poly.addPoint({ 5,5 }) << endl;
+	poly.print();
+
+	Parallelogram pal(poly);
+	pal.print();
+}
+
 void doAllTests() {
-	angleTest();
-	miscTest();
-	lineTest();
-	stripeTest();
-	queueTest();
-	finderTest();
+	//angleTest();
+	//miscTest();
+	//lineTest();
+	//stripeTest();
+	//queueTest();
+	//finderTest();
+	//ConvexPolygonTest();
+	figureFinderTest();
+	ParallelogramTest();
 	Sleep(1000000000000000);
 }

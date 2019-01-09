@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#
 
 struct Line {
 	double A, B, C;
@@ -27,7 +28,7 @@ struct Line {
 	Line() {
 		A = B = C = 0;
 	}
-	Line(int a, int b, int c) {
+	Line(double a, double b, double c) {
 		A = a;
 		B = b;
 		C = c;
@@ -61,6 +62,8 @@ struct Line {
 	bool isAbove(const Point& referencePoint, const Point& point); // line is Above point
 	bool isBelow(const Point& referencePoint, const Point& point); // line is Below point
 	double getAngleCloseTo(const double closeAngle); // fing line angle close to set angle
+	Line getPerpendicularLineViaPoint(const Point& point);
+	Point crossPoint(Line& line);
 };
 
 void createLineDistanceFromPoint(double outArray[2], const Point& referencePoint, const Point& point, const double distance); // outArray[0] is bigger than outArray[1]
