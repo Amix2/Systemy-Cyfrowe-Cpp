@@ -96,60 +96,71 @@ Parallelogram::Parallelogram(const PolygonFigure & poly) {
 	double bestFigVolume = WIDTH * HEIGHT * 2 ;
 
 	for (int midPoint = 0; midPoint < poly.firstFreePointId; midPoint++) {
-		//printf("midPoint: %d\n", midPoint);
-		const int prevP = (poly.firstFreePointId + midPoint - 1) % poly.firstFreePointId;
-		const int nextP = (poly.firstFreePointId + midPoint + 1) % poly.firstFreePointId;
-		Line prevLine(poly.points[midPoint], poly.points[prevP]);
-		Line nextLine(poly.points[midPoint], poly.points[nextP]);
+		int prevP = (poly.firstFreePointId + midPoint - 1) % poly.firstFreePointId;
+		int nextP = (poly.firstFreePointId + midPoint + 1) % poly.firstFreePointId;
+		while (prevP != nextP) {
+			nextP = (poly.firstFreePointId + midPoint + 1) % poly.firstFreePointId;
+			while (prevP != nextP) {
+				//printf("midPoint: %d,  Prev: %d,  next: %d\n", midPoint, prevP, nextP);
+			
 
-/*		//znajdziemy linie prostopad³¹ do prevLine
-		int prevFarPointID = -1;
-		double prevFarPointDist = -1;
-		for (int i = 0; i < poly.firstFreePointId; i++) {
-			const double newDist = prevLine.distanceFrom(poly.points[i]);
-			if (newDist > prevFarPointDist) {
-				prevFarPointDist = newDist;
-				prevFarPointID = i;
+				Line prevLine(poly.points[midPoint], poly.points[prevP]);
+				Line nextLine(poly.points[midPoint], poly.points[nextP]);
+
+		/*		//znajdziemy linie prostopad³¹ do prevLine
+				int prevFarPointID = -1;
+				double prevFarPointDist = -1;
+				for (int i = 0; i < poly.firstFreePointId; i++) {
+					const double newDist = prevLine.distanceFrom(poly.points[i]);
+					if (newDist > prevFarPointDist) {
+						prevFarPointDist = newDist;
+						prevFarPointID = i;
+					}
+				}
+
+				//znajdziemy linie prostopad³¹ do nextLine
+				int nextFarPointID = -1;
+				double nextFarPointDist = -1;
+				for (int i = 0; i < poly.firstFreePointId; i++) {
+					const double newDist = nextLine.distanceFrom(poly.points[i]);
+					if (newDist > nextFarPointDist) {
+						nextFarPointDist = newDist;
+						nextFarPointID = i;
+					}
+				}
+		*/
+				Line prevPerpend = normalizeLinesToCoverAll(poly, prevLine);
+				Line nextPerpend = normalizeLinesToCoverAll(poly, nextLine); //nextLine.getPerpendicularLineViaPoint(poly.points[nextFarPointID]);
+				prevLine = normalizeLinesToCoverAll(poly, prevPerpend);
+				nextLine = normalizeLinesToCoverAll(poly, nextPerpend);
+				//lines offset to cover all points
+
+
+
+				//prevLine -> nextLine -> prevPerpend -> nextPerpend
+				Parallelogram newFig(prevLine.crossPoint(nextLine), nextLine.crossPoint(prevPerpend), prevPerpend.crossPoint(nextPerpend), nextPerpend.crossPoint(prevLine));
+				//printf("newFig midPoint %d\n", midPoint);
+				//prevLine.print();
+				//nextLine.print();
+				//prevPerpend.print();
+				//nextPerpend.print();
+				//printf("newFig\n");
+				//newFig.print();
+				double newVolume = newFig.volume();
+				//printf("new fig Volume: %0.1f\n", newVolume);
+
+				//newFig.print();
+				//printf("newVol: %0.1f, bestVol: %0.1f", newVolume, bestFigVolume);
+				if (newVolume < bestFigVolume) {
+					bestFig = newFig;
+					bestFigVolume = newVolume;
+				}
+				nextP = (poly.firstFreePointId+ nextP + 1) % poly.firstFreePointId;
 			}
+			nextP = (poly.firstFreePointId + midPoint + 1) % poly.firstFreePointId;
+			prevP = (poly.firstFreePointId+ prevP - 1) % poly.firstFreePointId;
 		}
-
-		//znajdziemy linie prostopad³¹ do nextLine
-		int nextFarPointID = -1;
-		double nextFarPointDist = -1;
-		for (int i = 0; i < poly.firstFreePointId; i++) {
-			const double newDist = nextLine.distanceFrom(poly.points[i]);
-			if (newDist > nextFarPointDist) {
-				nextFarPointDist = newDist;
-				nextFarPointID = i;
-			}
-		}
-*/
-		Line prevPerpend = normalizeLinesToCoverAll(poly, prevLine);
-		Line nextPerpend = normalizeLinesToCoverAll(poly, nextLine); //nextLine.getPerpendicularLineViaPoint(poly.points[nextFarPointID]);
-		//prevLine = normalizeLinesToCoverAll(poly, prevPerpend);
-		//nextLine = normalizeLinesToCoverAll(poly, nextPerpend);
-		//lines offset to cover all points
-
-
-
-		//prevLine -> nextLine -> prevPerpend -> nextPerpend
-		Parallelogram newFig(prevLine.crossPoint(nextLine), nextLine.crossPoint(prevPerpend), prevPerpend.crossPoint(nextPerpend), nextPerpend.crossPoint(prevLine));
-		//printf("newFig midPoint %d\n", midPoint);
-		//prevLine.print();
-		//nextLine.print();
-		//prevPerpend.print();
-		//nextPerpend.print();
-		//printf("newFig\n");
-		//newFig.print();
-		double newVolume = newFig.volume();
-		//printf("new fig Volume: %0.1f\n", newVolume);
-
-		//newFig.print();
-		//printf("newVol: %0.1f, bestVol: %0.1f", newVolume, bestFigVolume);
-		if (newVolume < bestFigVolume) {
-			bestFig = newFig;
-			bestFigVolume = newVolume;
-		}
+		
 	}
 	//printf("Parallelogram commit\n");
 	//bestFig.print();

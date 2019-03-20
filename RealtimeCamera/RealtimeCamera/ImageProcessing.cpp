@@ -5,7 +5,7 @@
 
 // SET & GET
 uint8_t getRed(int px)	 {	return (px >> 16) & 0xff;	}
-uint8_t getGreen(int px) {	return (px >> 16) & 0xff;	}
+uint8_t getGreen(int px) {	return (px >> 8) & 0xff;	}
 uint8_t getBlue(int px)  {	return (px >> 0) & 0xff;	}
 uint8_t getAlpha(int px) {	return (px >> 24) & 0xff;	}
 void setAllColors(int* px, uint8_t red, uint8_t green, uint8_t blue) { *px = (*px << 24) | (red<< 16) | (green << 8) | blue;	}

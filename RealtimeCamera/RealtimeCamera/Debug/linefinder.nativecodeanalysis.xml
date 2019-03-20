@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>d:\agh\systemy-cyfrowe-cpp\realtimecamera\realtimecamera\</FILEPATH>
+      <FILENAME>linefinder.cpp</FILENAME>
+      <LINE>269</LINE>
+      <COLUMN>13</COLUMN>
+    </SFA>
+    <DEFECTCODE>6237</DEFECTCODE>
+    <DESCRIPTION>(&lt;zero&gt; &amp;&amp; &lt;wyrażenie&gt;) to zawsze zero. &lt;wyrażenie&gt; nigdy nie jest obliczane i to może mieć skutki uboczne.</DESCRIPTION>
+    <FUNCTION>traceLine2</FUNCTION>
+    <DECORATED>?traceLine2@@YA?AUPoint@@UFrame@@U1@1PAUStripe@@_N@Z</DECORATED>
+    <FUNCLINE>207</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>d:\agh\systemy-cyfrowe-cpp\realtimecamera\realtimecamera\</FILEPATH>
+      <FILENAME>linefinder.cpp</FILENAME>
+      <LINE>282</LINE>
+      <COLUMN>24</COLUMN>
+    </SFA>
+    <DEFECTCODE>6237</DEFECTCODE>
+    <DESCRIPTION>(&lt;zero&gt; &amp;&amp; &lt;wyrażenie&gt;) to zawsze zero. &lt;wyrażenie&gt; nigdy nie jest obliczane i to może mieć skutki uboczne.</DESCRIPTION>
+    <FUNCTION>traceLine2</FUNCTION>
+    <DECORATED>?traceLine2@@YA?AUPoint@@UFrame@@U1@1PAUStripe@@_N@Z</DECORATED>
+    <FUNCLINE>207</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>d:\agh\systemy-cyfrowe-cpp\realtimecamera\realtimecamera\</FILEPATH>
+      <FILENAME>linefinder.cpp</FILENAME>
+      <LINE>292</LINE>
+      <COLUMN>46</COLUMN>
+    </SFA>
+    <DEFECTCODE>6237</DEFECTCODE>
+    <DESCRIPTION>(&lt;zero&gt; &amp;&amp; &lt;wyrażenie&gt;) to zawsze zero. &lt;wyrażenie&gt; nigdy nie jest obliczane i to może mieć skutki uboczne.</DESCRIPTION>
+    <FUNCTION>traceLine2</FUNCTION>
+    <DECORATED>?traceLine2@@YA?AUPoint@@UFrame@@U1@1PAUStripe@@_N@Z</DECORATED>
+    <FUNCLINE>207</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

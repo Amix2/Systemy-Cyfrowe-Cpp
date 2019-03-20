@@ -42,14 +42,6 @@ void handleInLineConnections(int vMidPoz) {
 	if (dist < MERGE_POINT_LINE_DISTANCE and angleDif < MERGE_LINE_ANGLE) {
 		mergeVertex(vMidPoz, v1Poz, v2Poz);
 	}
-	else {
-		const double lineLenght1 = distance({ vMid.x, vMid.y }, { v1.x, v1.y });
-		const double lineLenght2 = distance({ vMid.x, vMid.y }, { v2.x, v2.y });
-		if (lineLenght1 / lineLenght2 > MERGE_LINE_LENGTH_PROP or lineLenght2 / lineLenght1 > MERGE_LINE_LENGTH_PROP) { // if any line is MERGE_LINE_LENGTH_PROP longer than the other
-			printf("CLOSEST\n");
-			mergeVertex(vMidPoz, v1Poz, v2Poz);
-		}
-	}
 }
 
 void vertexPostprocesing() {

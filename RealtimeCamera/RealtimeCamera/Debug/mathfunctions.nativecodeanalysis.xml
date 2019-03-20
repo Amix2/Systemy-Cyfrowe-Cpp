@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>d:\agh\systemy-cyfrowe-cpp\realtimecamera\realtimecamera\</FILEPATH>
+      <FILENAME>mathfunctions.cpp</FILENAME>
+      <LINE>44</LINE>
+      <COLUMN>16</COLUMN>
+    </SFA>
+    <DEFECTCODE>6282</DEFECTCODE>
+    <DESCRIPTION>Niepoprawny operator: przypisanie stałej w kontekście Boolean. Zamiast tego rozważ użycie zapisu „==”.</DESCRIPTION>
+    <FUNCTION>isVectorClose</FUNCTION>
+    <DECORATED>?isVectorClose@@YA_NUVector@@0N@Z</DECORATED>
+    <FUNCLINE>43</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>d:\agh\systemy-cyfrowe-cpp\realtimecamera\realtimecamera\</FILEPATH>
+      <FILENAME>mathfunctions.cpp</FILENAME>
+      <LINE>59</LINE>
+      <COLUMN>21</COLUMN>
+    </SFA>
+    <DEFECTCODE>6282</DEFECTCODE>
+    <DESCRIPTION>Niepoprawny operator: przypisanie stałej w kontekście Boolean. Zamiast tego rozważ użycie zapisu „==”.</DESCRIPTION>
+    <FUNCTION>isBetween</FUNCTION>
+    <DECORATED>?isBetween@@YA_NUVector@@00@Z</DECORATED>
+    <FUNCLINE>58</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>
